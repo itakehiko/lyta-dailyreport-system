@@ -20,6 +20,10 @@ import com.techacademy.entity.Employee;
 import com.techacademy.service.EmployeeService;
 import com.techacademy.service.UserDetail;
 
+import java.time.LocalDateTime;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @Controller
 @RequestMapping("employees")
 public class EmployeeController {
@@ -108,6 +112,37 @@ public class EmployeeController {
             model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
             model.addAttribute("employee", employeeService.findByCode(code));
             return detail(code, model);
+        }
+
+        return "redirect:/employees";
+    }
+
+    @GetMapping(value = "/{code}/update")
+    public String edit(@PathVariable("code") String code, Model model) {
+
+        if (code != null) {
+            model.addAttribute("employee", employeeService.findByCode(code));
+            return "employees/edit";
+        } else {
+            return "employees/edit";
+        }
+
+
+    }
+
+    @PostMapping(value = "/{code}/update")
+    public String update(@Validated Employee employee, BindingResult res, Model model) {
+
+        // 入力エラーの場合は更新画面を表示する
+        if (res.hasErrors()) {
+            return edit(null, model);
+        }
+
+        ErrorKinds result = employeeService.update(employee);
+
+        if (ErrorMessage.contains(result)) {
+            model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
+            return edit(null, model);
         }
 
         return "redirect:/employees";

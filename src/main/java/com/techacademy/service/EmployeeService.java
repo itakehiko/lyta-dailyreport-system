@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.techacademy.constants.ErrorMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,6 +49,44 @@ public class EmployeeService {
         employee.setCreatedAt(now);
         employee.setUpdatedAt(now);
 
+        employeeRepository.save(employee);
+        return ErrorKinds.SUCCESS;
+    }
+
+    // 従業員更新
+    @Transactional
+    public ErrorKinds update(Employee employee) {
+
+        if ("".equals(employee.getPassword())) {
+            // パスワード空白：現在のパスワードのままで更新処理
+            employee.setPassword(findByCode(employee.getCode()).getPassword());
+        } else {
+            // パスワードが入力されている：
+
+            // 桁数チェック
+            if (isOutOfRangePassword(employee)){
+                return ErrorKinds.RANGECHECK_ERROR;
+            }
+
+            // 半角英数字チェック
+            if (isHalfSizeCheckError(employee)) {
+                return ErrorKinds.HALFSIZE_ERROR;
+            }
+
+            employee.setPassword(passwordEncoder.encode(employee.getPassword()));
+        }
+
+        employee.setDeleteFlg(false);
+
+        // 更新日時をセット
+        LocalDateTime now = LocalDateTime.now();
+        employee.setUpdatedAt(now);
+
+        // 登録日時をセット
+        LocalDateTime createdAt = findByCode(employee.getCode()).getCreatedAt();
+        employee.setCreatedAt(createdAt);
+
+        // テーブル更新処理
         employeeRepository.save(employee);
         return ErrorKinds.SUCCESS;
     }
