@@ -25,7 +25,6 @@ RUN apt -y install apache2
 RUN a2enmod rewrite
 RUN a2enmod ssl
 RUN a2ensite default-ssl
-COPY index.html /var/www/html
 RUN sed -i -e "s/^<\/VirtualHost>/RewriteEngine on/" /etc/apache2/sites-available/000-default.conf
 RUN echo 'RewriteCond %{HTTPS} off' >> /etc/apache2/sites-available/000-default.conf
 RUN echo 'RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L]' >> /etc/apache2/sites-available/000-default.conf
@@ -40,7 +39,7 @@ RUN echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION
 RUN apt update
 RUN apt -y install temurin-17-jdk=17.0.5.0.0+8
 RUN mkdir /var/www/java
-COPY DailyReportSystemApplication-0.0.1-SNAPSHOT.jar /var/www/java/
+COPY DailyReportSystemApplication.jar /var/www/java/
 RUN a2enmod proxy
 RUN a2enmod proxy_ajp
 RUN echo "ProxyPass / ajp://localhost:8009/" >> /etc/apache2/apache2.conf
