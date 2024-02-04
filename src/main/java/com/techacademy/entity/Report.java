@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,6 +21,8 @@ public class Report {
     private Integer id;
 
     @NotNull
+    @Column(nullable = false)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate reportDate;
 
     @Column(length = 100, nullable = false)
@@ -32,7 +35,7 @@ public class Report {
 
     @ManyToOne
     @JoinColumn(name = "employee_code")
-    @NotNull
+//    @NotNull
     private Employee employee;
 
     @Column(columnDefinition = "TINYINT", nullable = false)
