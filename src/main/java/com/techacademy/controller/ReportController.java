@@ -111,12 +111,17 @@ public class ReportController {
     }
 
     // 日報更新処理
-    @PostMapping(value = "/{id}/update")
+    @PostMapping(value = "/{id}/update/")
     public String update(@Validated Report report, BindingResult res, Model model) {
-
         if (res.hasErrors()) {
             return edit(null, model);
         }
+
+        Employee employee = reportService.findById(report.getId()).getEmployee();
+        report.setEmployee(employee);
+
+        LocalDateTime createdAt = reportService.findById(report.getId()).getCreatedAt();
+        report.setCreatedAt(createdAt);
 
         report.setUpdatedAt(LocalDateTime.now());
         reportService.update(report);
