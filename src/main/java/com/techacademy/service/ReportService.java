@@ -1,5 +1,6 @@
 package com.techacademy.service;
 
+import com.techacademy.entity.Employee;
 import com.techacademy.entity.Report;
 import com.techacademy.repository.ReportRepository;
 import jakarta.transaction.Transactional;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.beans.Transient;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,11 +47,40 @@ public class ReportService {
         return reportRepository.findAll();
     }
 
+    public List<Report> findMyReports(String code) {
+        List<Report> list = reportRepository.findAll();
+
+        for (int i =0; i < list.size(); i++) {
+            if (list.get(i).getEmployee().getCode() != code) {
+                list.remove(i);
+            }
+        }
+
+        return list;
+    }
+
     // 1件を検索
     public Report findById(Integer id) {
         Optional<Report> option = reportRepository.findById(id);
         Report report = option.orElse(null);
         return report;
+    }
+
+    public List<Report> findByReportDateAndEmployee(LocalDate reportDate, Employee employee) {
+        List<Report> list = reportRepository.findByReportDateAndEmployee(reportDate, employee);
+        return list;
+    }
+
+    public List<Report> findByReportDateAndEmployeeUpdate(LocalDate reportDate, Employee employee, Integer id) {
+        List<Report> list = reportRepository.findByReportDateAndEmployee(reportDate, employee);
+
+        for (int i =0; i < list.size(); i++) {
+            if (list.get(i).getId() == id) {
+                list.remove(i);
+            }
+        }
+
+        return list;
     }
 
 }

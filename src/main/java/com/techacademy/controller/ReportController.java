@@ -20,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Controller
 @RequestMapping("reports")
@@ -38,8 +39,16 @@ public class ReportController {
     @GetMapping
     public String list(Model model) {
 
-        model.addAttribute("listSize", reportService.findAll().size());
-        model.addAttribute("reportList", reportService.findAll());
+        String code = SecurityContextHolder.getContext().getAuthentication().getName(); // ログイン中ユーザーのcode
+        Employee employee = employeeService.findByCode(code);
+
+        if (employee.getRole() == Employee.Role.ADMIN) {
+            model.addAttribute("listSize", reportService.findAll().size());
+            model.addAttribute("reportList", reportService.findAll());
+        } else {
+            model.addAttribute("listSize", reportService.findMyReports(code).size());
+            model.addAttribute("reportList", reportService.findMyReports(code));
+        }
 
         return "reports/list";
     }
@@ -68,9 +77,18 @@ public class ReportController {
     @PostMapping(value = "/add")
     public String add(@Validated Report report, BindingResult res, Model model) {
 
-        var code = SecurityContextHolder.getContext().getAuthentication().getName(); // ログイン中ユーザーのcode
+        String code = SecurityContextHolder.getContext().getAuthentication().getName(); // ログイン中ユーザーのcode
         Employee employee = employeeService.findByCode(code);
         report.setEmployee(employee);
+
+        List<Report> list = reportService.findByReportDateAndEmployee(report.getReportDate(), employee);
+        if (list.size() != 0) {
+            model.addAttribute(
+                    "reportError",
+                    "既に登録されている日付です");
+
+            return create(report, model);
+        }
 
         LocalDateTime now = LocalDateTime.now();
         report.setCreatedAt(now);
@@ -100,6 +118,9 @@ public class ReportController {
         String code = SecurityContextHolder.getContext().getAuthentication().getName(); // ログイン中ユーザーのcode
         String name = employeeService.findByCode(code).getName();
 
+
+
+        model.addAttribute("employeeCode", code);
         model.addAttribute("employeeName", name);
 
         if (id != null) {
@@ -113,11 +134,21 @@ public class ReportController {
     // 日報更新処理
     @PostMapping(value = "/{id}/update/")
     public String update(@Validated Report report, BindingResult res, Model model) {
+
+        Employee employee = reportService.findById(report.getId()).getEmployee();
+        List<Report> list = reportService.findByReportDateAndEmployeeUpdate(report.getReportDate(), employee, report.getId());
+        if (list.size() != 0) {
+            model.addAttribute(
+                    "reportError",
+                    "既に登録されている日付です");
+
+            return edit(null, model);
+        }
+
         if (res.hasErrors()) {
             return edit(null, model);
         }
 
-        Employee employee = reportService.findById(report.getId()).getEmployee();
         report.setEmployee(employee);
 
         LocalDateTime createdAt = reportService.findById(report.getId()).getCreatedAt();
