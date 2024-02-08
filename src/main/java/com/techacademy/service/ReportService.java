@@ -59,6 +59,11 @@ public class ReportService {
         return list;
     }
 
+    public List<Report> findByEmployee(Employee employee) {
+        List<Report> list = reportRepository.findByEmployee(employee);
+        return list;
+    }
+
     // 1件を検索
     public Report findById(Integer id) {
         Optional<Report> option = reportRepository.findById(id);
